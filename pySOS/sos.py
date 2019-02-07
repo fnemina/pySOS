@@ -215,6 +215,58 @@ class SURFACE(object):
         self.alpha = alpha
         self.beta = beta
 
+class AP(object):
+    """ Atmospheric profile parameters object."""
+
+    def __init__(self, mot=None, hr=8.0, ha=2.0):
+        """ Init function for the atmospheric profile
+            mot         Molecular optical thickness for the wavelength of
+                        radiance simulation
+                        > 0.0001 : To be considered
+                        0        : To ginore
+            hr          Molecular heigth scale (km).
+            ha          Aerosol heigth scale (km).
+            """
+
+        self.mot = mot
+        self.hr = hr
+        self.ha = ha
+        self.type = 1
+        self.zmin = None
+        self.zmax = None
+        self.usefile = None
+
+    def setHeightScale(self, ha):
+        """ Profile defined by heights scales
+            ha          Aerosol heigth scale (km).
+            """
+        self.ha = ha
+        self.type = 1
+        self.zmin = None
+        self.zmax = None
+
+
+    def setMixAltitude(self, zmin, zmax):
+        """ Profile for a mixture of molecules and aerosols
+            between altitudes Zmin and Zmax (in km)"""
+        self.ha = None
+        self.type = 2
+        self.zmin = zmin
+        self.zmax = zmax
+
+    def UserFile(self, usefile):
+        """Pre-calculated atmospheric profile file (complete path).
+           The user profile is supposed to be a real profile, without
+           adjustment to an aerosol phase function truncature.
+        """
+        self.usefile = usefile
+        self.mot = None
+        self.hr = None
+        self.ha = None
+        self.type = None
+        self.zmin = None
+        self.zmax = None
+        self.usefile = None
 
 class SOS(object):
     """ This class creates the SOS object which configures and runs the
