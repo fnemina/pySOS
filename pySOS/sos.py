@@ -788,7 +788,7 @@ class SOS(object):
             if self.results.aer is not None:
                 sc = sc+"\n"+"-AER.ResFile ${{dirRESULTS}}/{} \\".format(self.results.aer)
             if self.log.aermie is not None:
-                sc = sc+"\n"+"-AER.MieLog {} \\".format(self.log.aermie)
+                sc = sc+"\n"+"-AER.MieLog ${{dirLOG}}/{} \\".format(self.log.aermie)
             sc = sc+"\n"+"-AER.Waref  {} \\".format(self.aer.waref)
             sc = sc+"\n"+"-AER.AOTref {} \\".format(self.aer.aotref)
             sc = sc+"\n"+"-AER.Tronca {} \\".format(self.aer.tronca)
