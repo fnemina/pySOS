@@ -890,3 +890,18 @@ class SOS(object):
 
         # read OUTPUTS
         self.outputs = OUTPUTS(self.resroot, self.results)
+
+def test():
+    s = SOS()
+    s.run()
+    print("SOS wrapper script by Francisco Nemiña")
+    print("Inspired by Py6S wrapper by Robin Wilson")
+    print("Using SOS located at {}".format(s.root))
+    print("Running SOS using a set of test parameters")
+    print("The results are:")
+    print("Expected result: 0.346131")
+    print("Actual result: {}".format(s.outputs.up.I[0]))
+    if (s.outputs.up.I[0]  == 0.346131):
+        print("#### Results agree PyOSOAA is working correctly")
+    if (s.outputs.up.I[0] != 0.346131):
+        print("#### Results do not agree PyOSOAA is not working correctly")
