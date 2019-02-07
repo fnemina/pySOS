@@ -137,7 +137,7 @@ class SURFACE(object):
             ind         Refractive index air / water for the wavelength of
                         simulation SOS.Wa
             """
-        self.type = 1
+        self.type = 2
         self.alb = alb
         self.wind = None
         self.ind = ind
