@@ -8,8 +8,8 @@ class TestOSOAAClasses(unittest.TestCase):
 
     def testSURFACE(self):
         surface = pySOS.SURFACE()
-        self.assertEqual(surface.alb, 0)
-        self.assertEqual(surface.type, 0)
+        self.assertEqual(surface.alb, 0.02)
+        self.assertEqual(surface.type, 1)
 
         surface.setLabertian(alb=0.1)
         self.assertEqual(surface.type, 0)
@@ -48,7 +48,7 @@ class TestOSOAAClasses(unittest.TestCase):
         self.assertEqual(surface.beta, None)
 
         surface.setLabertianRoujean(k0=0, k1=1, k2=2, alb=0.3)
-        self.assertEqual(surface.type, 2)
+        self.assertEqual(surface.type, 3)
         self.assertEqual(surface.alb, 0.3)
         self.assertEqual(surface.wind, None)
         self.assertEqual(surface.ind, None)
@@ -59,11 +59,11 @@ class TestOSOAAClasses(unittest.TestCase):
         self.assertEqual(surface.alpha, None)
         self.assertEqual(surface.beta, None)
 
-        surface.setLabertianRondeaux(k0=0, k1=1, k2=2, alb=0.3)
-        self.assertEqual(surface.type, 2)
+        surface.setLabertianRondeaux(k0=0, k1=1, k2=2, alb=0.3, ind=1.34)
+        self.assertEqual(surface.type, 4)
         self.assertEqual(surface.alb, 0.3)
         self.assertEqual(surface.wind, None)
-        self.assertEqual(surface.ind, None)
+        self.assertEqual(surface.ind, 1.34)
         self.assertEqual(surface.file, "DEFAULT")
         self.assertEqual(surface.roujeank0, 0)
         self.assertEqual(surface.roujeank1, 1)
@@ -71,11 +71,11 @@ class TestOSOAAClasses(unittest.TestCase):
         self.assertEqual(surface.alpha, None)
         self.assertEqual(surface.beta, None)
 
-        surface.setLabertianBreon(k0=0, k1=1, k2=2, alb=0.3)
-        self.assertEqual(surface.type, 2)
+        surface.setLabertianBreon(k0=0, k1=1, k2=2, alb=0.3, ind=1.34)
+        self.assertEqual(surface.type, 5)
         self.assertEqual(surface.alb, 0.3)
         self.assertEqual(surface.wind, None)
-        self.assertEqual(surface.ind, None)
+        self.assertEqual(surface.ind, 1.34)
         self.assertEqual(surface.file, "DEFAULT")
         self.assertEqual(surface.roujeank0, 0)
         self.assertEqual(surface.roujeank1, 1)
@@ -83,11 +83,11 @@ class TestOSOAAClasses(unittest.TestCase):
         self.assertEqual(surface.alpha, None)
         self.assertEqual(surface.beta, None)
 
-        surface.setLabertianNadal(k0=0, k1=1, k2=2, alb=0.3, alpha=5, beta=6)
-        self.assertEqual(surface.type, 2)
+        surface.setLabertianNadal(k0=0, k1=1, k2=2, alb=0.3, alpha=5, beta=6, ind=1.34)
+        self.assertEqual(surface.type, 6)
         self.assertEqual(surface.alb, 0.3)
         self.assertEqual(surface.wind, None)
-        self.assertEqual(surface.ind, None)
+        self.assertEqual(surface.ind, 1.34)
         self.assertEqual(surface.file, "DEFAULT")
         self.assertEqual(surface.roujeank0, 0)
         self.assertEqual(surface.roujeank1, 1)
@@ -98,22 +98,21 @@ class TestOSOAAClasses(unittest.TestCase):
     def testANG(self):
         ang = pySOS.ANG()
 
-        self.assertIsNone(ang.rad.nbgauss)
+        self.assertEqual(ang.rad.nbgauss, 24)
         self.assertIsNone(ang.rad.userangfile)
 
-        self.assertIsNone(ang.mie.nbgauss)
-        self.assertIsNone(ang.mie.userangfile)
+        self.assertEqual(ang.aer.nbgauss, 40)
+        self.assertIsNone(ang.aer.userangfile)
 
-        self.assertEqual(ang.thetas, 30)
+        self.assertEqual(ang.thetas, 32.48)
 
     def testAER(self):
         aer = pySOS.AER()
         self.assertEqual(aer.waref, 0.55)
-        self.assertEqual(aer.aotref, 0.1)
-        self.assertIsNone(aer.tronca)
-        self.assertEqual(aer.model, 2)
-        self.assertEqual(aer.sf.model, 3)
-        self.assertEqual(aer.sf.rh, 98)
+        self.assertEqual(aer.aotref, 0.3)
+        self.assertEqual(aer.tronca, 1)
+        self.assertEqual(aer.model, 1)
+        self.assertEqual(aer.wmo.model, 2)
 
         aer.SetModel(model=0, sdtype=1)
         self.assertIsNone(aer.wmo)

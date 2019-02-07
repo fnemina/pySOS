@@ -9,28 +9,28 @@ from io import open
 class LOG(object):
     """ Log files for the simulation.
     """
-    ang = "log_ang.txt"
-    profile = "log_profile.txt"
-    aer = "log_aer.txt"
-    aermie = "log_aermie.txt"
-    surface = "log_surface.txt"
-    sos = "log_sos.txt"
-    config = "config_sos.txt"
+    ang = "Angle.log"
+    profile = "Profile.log"
+    aer = "Aerosols.log"
+    aermie = "AerMie.log"
+    surface = "Surface.log"
+    sos = "SOS.Log"
+    config = "SOS_config.txt"
 
 
 class RESULTS(object):
     """ Result files for the simulation.
         """
-    profileatm = None
-    aer = None
-    angrad = None
-    angaer = None
-    bin = None
-    trans = None
-    advup = "resfile_advup.txt"
-    advdown = "resfile_advdown.txt"
-    advupuser = "resfile_advup_user.txt"
-    advdownuser = "resfile_advdown_user.txt"
+    profile = "Profile.txt"
+    aer = "Aerosols.txt"
+    angrad = "SOS_angrad.txt"
+    angaer = "SOS_angaer.txt"
+    bin = "SOS_Result.bin"
+    trans = "SOS_transm.txt"
+    advup = "SOS_Up.txt"
+    advdown = "SOS_Down.txt"
+    advupuser = "SOS_Up_user.txt"
+    advdownuser = "SOS_Down_user.txt"
 
 
 class ANG(object):
@@ -48,28 +48,28 @@ class ANG(object):
             self.nbgauss = nbgauss
             self.userangfile = userangfile
 
-    def __init__(self, thetas=30.0, radnb=None, raduser=None,
-                 mienb=None, mieuser=None):
+    def __init__(self, thetas=32.48, radnb=24, raduser=None,
+                 aernb=40, aeruser=None):
         """ Init the angle class
             thetas      Solar zenith angle (degrees)
             radnb       Number of Gauss angles to be used for radiance
                         computations
             raduser     Filename of the complementary list of user's angles to
                         complete the ANG.Rad.NbGauss angles (complete path).
-            mienb       Number of Gauss angles to be used for mie computations
-            mieuser     Filename of the complementary list of user's angles to
+            aernb       Number of Gauss angles to be used for mie computations
+            aeruser     Filename of the complementary list of user's angles to
                         complete the ANG.mie.NbGauss angles (complete path).
             """
 
         self.rad = self.ANGLES(radnb, raduser)
-        self.mie = self.ANGLES(mienb, mieuser)
+        self.aer = self.ANGLES(aernb, aeruser)
         self.thetas = thetas
 
 
 class SURFACE(object):
     """ Surface definitions class."""
 
-    def __init__(self, type=0, alb=0):
+    def __init__(self, type=1, alb=0.02, ind=1.34, wind=2.0):
         """ This method initiates de surface class.
             alb         Surface albedo for wavelength SOS.
             type        Type of surface condition simulated.
@@ -91,6 +91,16 @@ class SURFACE(object):
 
         self.type = type
         self.alb = alb
+        self.wind = wind
+        self.ind = ind
+        self.file = "DEFAULT"
+
+        self.roujeank0 = None
+        self.roujeank1 = None
+        self.roujeank2 = None
+
+        self.alpha = None
+        self.beta = None
 
     def setLabertian(self, alb=0):
         """ Lambertian surface configuration
@@ -118,7 +128,7 @@ class SURFACE(object):
             file        Pre-calculated user file (complete path)
                         or “DEFAULT” for code calculation
             """
-        self.type = 0
+        self.type = 1
         self.alb = alb
         self.wind = wind
         self.ind = ind
@@ -229,7 +239,7 @@ class SURFACE(object):
             alpha       alpha Nadal parameter
             beta        beta Nadal parameter
             """
-        self.type = 5
+        self.type = 6
         self.alb = alb
         self.wind = None
         self.ind = ind
@@ -411,7 +421,7 @@ class AER(object):
     """ This class contains everything related to the aerosol components
         of the atmosphere."""
 
-    def __init__(self, waref=0.550, aotref=0.1, tronca=None, model=2):
+    def __init__(self, waref=0.550, aotref=0.3, tronca=1, model=1):
         """ Init method for the aerosol componentes class
             waref       Wavelength (microns) for reference aerosol optical
                         thickness.
@@ -431,7 +441,7 @@ class AER(object):
         self.aotref = aotref
         self.tronca = tronca
         self.model = model
-        self.sf = AEROSOLMODELS.SF(sfmodel=3, rh=98)
+        self.wmo = AEROSOLMODELS.WMO(wmotype=2)
         self.usefile = None
 
     def SetModel(self, model=2,
@@ -543,7 +553,7 @@ class AER(object):
 class AP(object):
     """ Atmospheric profile parameters object."""
 
-    def __init__(self, mot=None, hr=8.0, ha=2.0):
+    def __init__(self, mot=0.230, hr=8.0, ha=2.0):
         """ Init function for the atmospheric profile
             mot         Molecular optical thickness for the wavelength of
                         radiance simulation
@@ -560,6 +570,10 @@ class AP(object):
         self.zmin = None
         self.zmax = None
         self.usefile = None
+
+        self.ha = 2.0
+        self.zmin = None
+        self.zmax = None
 
     def setHeightScale(self, ha):
         """ Profile defined by heights scales
@@ -597,13 +611,13 @@ class SOS(object):
     """ This class creates the SOS object which configures and runs the
         simulation"""
 
-    def __init__(self, wa=0.440, resroot=None, mdf=None,
-                 view=1, phi=90, dphi=None, igmax=None,
-                 lpolar=0, outputlevel=-1):
-        """ This method initiates the OSOAA class
+    def __init__(self, wa=0.440, resroot=None, mdf=0.0279,
+                 view=1, phi=0, dphi=None, igmax=30,
+                 ipolar=0, outputlevel=-1):
+        """ This method initiates the SOS class
             wa          Wavelength of radiance calculation (microns).
             mdf         Molecular depolarization factor.
-            resroot     Working folder for the OSOAA computations (complete
+            resroot     Working folder for the SOS computations (complete
                         path).
             view        Option for field of view representation
                         1 : Viewing in a constant azimuth plan
@@ -612,7 +626,7 @@ class SOS(object):
             dphi        Step on the azimuth (degrees, integer value)
             igmax       Maximal order of interaction (scattering & surface
                         reflexion).
-            lpolar      Option for polarization turn-off
+            ipolar      Option for polarization turn-off
                         0 : simulation without polarization
             outputlevel Option for output level definitions
                         -1 : Default output : upward radiance at TOA,
@@ -622,17 +636,19 @@ class SOS(object):
         """
 
         self.wa = wa
-        self.root = os.getenv("OSOAA_ROOT")
+        self.root = os.getenv("RACINE")
         self.view = view
         self.phi = phi
         self.dphi = None
         self.igmax = igmax
-        self.lpolar = lpolar
+        self.ipolar = ipolar
+        self.outputlevel = outputlevel
+        self.mdf = mdf
 
         if resroot is None:
             rnd = ''.join(random.choice(string.ascii_uppercase
                                         + string.ascii_lowercase
-                                        + string.digits) for _ in range(16))
+                                        + string.digits) for _ in range(8))
             self.resroot = self.root+"/results/"+rnd
         else:
             self.resroot = resroot
@@ -641,6 +657,8 @@ class SOS(object):
         self.surface = SURFACE()
         self.ap = AP()
         self.aer = AER()
+        self.results = RESULTS()
+        self.log = LOG()
 
     def setConstantView(self, phi):
         """ Set constant view mode for a relative azimuth angles
@@ -656,3 +674,218 @@ class SOS(object):
             """
         self.view = 2
         self.phi = None
+
+    def run(self, root=None):
+        """ Run SOS. If no root directory is given for SOS the one
+            configured by the system is used.
+            """
+
+        if root is not None:
+            self.root = root
+
+        ## Previous config
+        sc = "export SOS_RACINE=$RACINE"
+        # Results
+        sc = sc+"\n"+"export SOS_RESULT={}".format(self.resroot)
+        # WMO and S&F files
+        sc = sc+"\n"+"export SOS_RACINE_FIC=$RACINE/fic"
+        # Surface storage
+        sc = sc+"\n"+"export dirSUNGLINT=$SOS_RESULT/SURFACE/GLITTER"
+        sc = sc+"\n"+"export dirROUJEAN=$SOS_RESULT/SURFACE/ROUJEAN"
+        sc = sc+"\n"+"export dirRH=$SOS_RESULT/SURFACE/RH"
+        sc = sc+"\n"+"export dirBREON=$SOS_RESULT/SURFACE/BREON"
+        sc = sc+"\n"+"export dirNADAL=$SOS_RESULT/SURFACE/NADAL"
+        sc = sc+"\n"+"export dirMIE=$SOS_RESULT/MIE"
+        sc = sc+"\n"+"export dirLOG=$SOS_RESULT/LOG"
+        sc = sc+"\n"+"export dirRESULTS=$SOS_RESULT/SOS"
+
+        sc = sc+"\n"+"{}/exe/main_SOS.ksh \\".format(self.root)
+        #   Definition of the working folder : #CHECK!!!
+        #   ----------------------------------
+        sc = sc+"\n"+"-SOS.ResRoot {} \\".format(self.resroot)
+        #
+        #   Angles calculation parameters :
+        #   --------------------------------
+        sc = sc+"\n"+"-ANG.Thetas {} \\".format(self.ang.thetas)
+        if self.ang.rad.nbgauss is not None:
+            sc = sc+"\n"+"-ANG.Rad.NbGauss {} \\".format(self.ang.rad.nbgauss)
+        if self.ang.rad.userangfile is not None:
+            sc = sc+"\n"+"-ANG.Rad.UserAngFile {} \\".format(
+                self.ang.rad.userangfile)
+        if self.results.angrad is not None:
+            sc = sc+"\n"+"-ANG.Rad.ResFile ${{dirRESULTS}}/{} \\".format(self.results.angrad)
+        if self.ang.aer.nbgauss is not None:
+            sc = sc+"\n"+"-ANG.Aer.NbGauss {} \\".format(self.ang.aer.nbgauss)
+        if self.ang.aer.userangfile is not None:
+            sc = sc+"\n"+"-ANG.Aer.UserAngFile {} \\".format(
+                self.ang.aer.userangfile)
+        if self.results.angaer is not None:
+            sc = sc+"\n"+"-ANG.Aer.ResFile ${{dirRESULTS}}/{} \\".format(self.results.angaer)
+        if self.log.ang is not None:
+            sc = sc+"\n"+"-ANG.Log ${{dirLOG}}/{} \\".format(self.log.ang)
+        #
+        #   Radiance calculation parameters :
+        #   --------------------------------
+        if self.log.sos is not None:
+            sc = sc+"\n"+"-SOS.Log ${{dirLOG}}/{} \\".format(self.log.sos)
+        sc = sc+"\n"+"-SOS.Wa  {} \\".format(self.wa)
+        #
+        sc = sc+"\n"+"-SOS.View {} \\".format(self.view)
+        if self.view is 1:
+            sc = sc+"\n"+"-SOS.View.Phi {} \\".format(self.phi)
+        elif self.view is 2:
+            sc = sc+"\n"+"-SOS.View.Phi {} \\".format(self.dphi)
+        sc = sc+"\n"+"-SOS.View.Level {} \\".format(self.outputlevel)
+        #
+        if self.log.sos is not None:
+            sc = sc+"\n"+"-SOS.Log ${{dirLOG}}/{} \\".format(self.log.sos)
+        if self.igmax is not None:
+            sc = sc+"\n"+"-SOS.IGmax {} \\".format(self.igmax)
+
+        sc = sc+"\n"+"-SOS.Ipolar {} \\".format(self.ipolar)
+        if self.mdf is not None:
+                sc = sc+"\n"+"-SOS.MDF {} \\".format(self.mdf)
+        if self.results.bin is not None:
+            sc = sc+"\n"+"-SOS.ResBin ${{dirRESULTS}}/{} \\".format(self.results.bin)
+
+        if self.results.advup is not None:
+            sc = sc+"\n"+"-SOS.ResFileUp ${{dirRESULTS}}/{} \\".format(self.results.advup)
+        if self.results.advdown is not None:
+            sc = sc+"\n"+"-SOS.ResFileDown ${{dirRESULTS}}/{} \\".format(self.results.advdown)
+        if self.results.advupuser is not None:
+            sc = sc+"\n"+"-SOS.ResFileUp.UserAng ${{dirRESULTS}}/{} \\".format(self.results.advupuser)
+        if self.results.advdown is not None:
+            sc = sc+"\n"+"-SOS.ResFileDown.UserAng ${{dirRESULTS}}/{} \\".format(self.results.advdownuser)
+        if self.results.trans is not None:
+            sc = sc+"\n"+"-SOS.Trans ${{dirRESULTS}}/{} \\".format(self.results.trans)
+        if self.log.config is not None:
+            sc = sc+"\n"+"-SOS.Config ${{dirRESULTS}}/{} \\".format(self.log.config)
+        #
+        #   Profile parameters :
+        #   -------------------
+        if self.ap.usefile is None:
+            if self.results.profile is not None:
+                sc = sc+"\n"+"-AP.ResFile ${{dirRESULTS}}/{} \\".format(self.results.profile)
+            #     Atmospheric Profile parameters
+            sc = sc+"\n"+"-AP.MOT {} \\".format(self.ap.mot)
+            sc = sc+"\n"+"-AP.HR {} \\".format(self.ap.hr)
+            sc = sc+"\n"+"-AP.Type {} \\".format(self.ap.type)
+            if self.ap.type is 1:
+                sc = sc+"\n"+"-AP.AerHS.HA {} \\".format(self.ap.ha)
+            if self.ap.type is 2:
+                sc = sc+"\n"+"-AP.AerLayer.Zmax {} \\".format(self.ap.zmax)
+                sc = sc+"\n"+"-AP.AerLayer.Zmin {} \\".format(self.ap.zmin)
+        elif self.ap.usefile is not None:
+            sc = sc+"\n"+"-AP.UseFile {} \\".format(self.ap.usefile)
+        if self.log.profile is not None:
+            sc = sc+"\n"+"-AP.Log ${{dirLOG}}/{} \\".format(self.log.profile)
+        #
+        #   Aerosols parameters :
+        #   ---------------------
+        if self.log.aer is not None:
+            sc = sc+"\n"+"-AER.Log ${{dirLOG}}/{} \\".format(self.log.aer)
+        if self.aer.usefile is None:
+            if self.results.aer is not None:
+                sc = sc+"\n"+"-AER.ResFile ${{dirRESULTS}}/{} \\".format(self.results.aer)
+            if self.log.aermie is not None:
+                sc = sc+"\n"+"-AER.MieLog {} \\".format(self.log.aermie)
+            sc = sc+"\n"+"-AER.Waref  {} \\".format(self.aer.waref)
+            sc = sc+"\n"+"-AER.AOTref {} \\".format(self.aer.aotref)
+            sc = sc+"\n"+"-AER.Tronca {} \\".format(self.aer.tronca)
+            if self.aer.aotref > 0.0:
+                sc = sc+"\n"+"-AER.Model {} \\".format(self.aer.model)
+            #     Aerosols parameters for mono-modal models :
+            if self.aer.model is 0:
+                sc = sc+"\n"+"-AER.MMD.MRwa {} \\".format(self.aer.mm.mrwa)
+                sc = sc+"\n"+"-AER.MMD.MIwa {} \\".format(self.aer.mm.miwa)
+                if self.wa is not self.aer.waref:
+                    sc = sc+"\n"+"-AER.MMD.MRwaref {} \\".format(self.aer.mm.mrwaref)
+                    sc = sc+"\n"+"-AER.MMD.MIwaref {} \\".format(self.aer.mm.miwaref)
+                sc = sc+"\n"+"-AER.MMD.SDtype {} \\".format(self.aer.mm.sdtype)
+                if self.aer.mm.sdtype is 1:
+                    sc = sc+"\n"+"-AER.MMD.LNDradius {} \\".format(self.aer.mm.sdradius)
+                    sc = sc+"\n"+"-AER.MMD.LNDvar {} \\".format(self.aer.mm.sdvar)
+                elif self.aer.mm.sdtype is 2:
+                    sc = sc+"\n"+"-AER.MMD.JD.slope {} \\".format(self.aer.mm.slope)
+                    sc = sc+"\n"+"-AER.MMD.JD.rmin {} \\".format(self.aer.mm.rmin)
+                    sc = sc+"\n"+"-AER.MMD.JD.rmax {} \\".format(self.aer.mm.rmax)
+            #     Aerosols parameters for WMO models :
+            elif self.aer.model is 1:
+                sc = sc+"\n"+"-AER.WMO.Model {} \\".format(self.aer.wmo.model)
+                if self.aer.wmo.model is 4:
+                    sc = sc+"\n"+"-AER.WMO.DL {} \\".format(self.aer.wmo.dl)
+                    sc = sc+"\n"+"-AER.WMO.WS {} \\".format(self.aer.wmo.ws)
+                    sc = sc+"\n"+"-AER.WMO.OC {} \\".format(self.aer.wmo.oc)
+                    sc = sc+"\n"+"-AER.WMO.SO {} \\".format(self.aer.wmo.so)
+            #     Aerosols parameters for Shettle&Fenn models :
+            elif self.aer.model is 2:
+                sc = sc+"\n"+"-AER.SF.Model {} \\".format(self.aer.sf.model)
+                sc = sc+"\n"+"-AER.SF.RH {} \\".format(self.aer.sf.rh)
+            #     Aerosols parameters for LND bi-modal models :
+            elif self.aer.model is 3:
+                sc = sc+"\n"+"-AER.BMD.VCdef {} \\".format(self.aer.lnb.vcdef)
+                if self.aer.lnb.vcdef is 1:
+                    sc = sc+"\n"+"-AER.BMD.CoarseVC {} \\".format(self.aer.lnb.coarsevc)
+                    sc = sc+"\n"+"-AER.BMD.FineVC {} \\".format(self.aer.lnb.finevc)
+                elif self.aer.lnb.vcdef is 2:
+                    sc = sc+"\n"+"-AER.BMD.RAOT {} \\".format(self.aer.lnb.raot)
+                sc = sc+"\n"+"-AER.BMD.CM.MRwa {} \\".format(self.aer.lnb.cmrwa)
+                sc = sc+"\n"+"-AER.BMD.CM.MIwa {} \\".format(self.aer.lnb.cmiwa)
+                sc = sc+"\n"+"-AER.BMD.CM.MRwaref {} \\".format(self.aer.lnb.cmrwaref)
+                sc = sc+"\n"+"-AER.BMD.CM.MIwaref {} \\".format(self.aer.lnb.cmiwaref)
+                sc = sc+"\n"+"-AER.BMD.CM.SDradius {} \\".format(self.aer.lnb.csdradius)
+                sc = sc+"\n"+"-AER.BMD.CM.SDvar {} \\".format(self.aer.lnb.csdvar)
+                sc = sc+"\n"+"-AER.BMD.FM.MRwa {} \\".format(self.aer.lnb.fmrwa)
+                sc = sc+"\n"+"-AER.BMD.FM.MIwa {} \\".format(self.aer.lnb.fmiwa)
+                sc = sc+"\n"+"-AER.BMD.FM.MRwaref {} \\".format(self.aer.lnb.fmrwaref)
+                sc = sc+"\n"+"-AER.BMD.FM.MIwaref {} \\".format(self.aer.lnb.fmiwaref)
+                sc = sc+"\n"+"-AER.BMD.FM.SDradius {} \\".format(self.aer.lnb.fsdradius)
+                sc = sc+"\n"+"-AER.BMD.FM.SDvar {} \\".format(self.aer.lnb.fsdvar)
+            #    Aerosols parameters for external data (phase functions, scattering
+            #    and extinction coefficients) :
+            elif self.aer.model is 4:
+                sc = sc+"\n"+"-AER.ExtData {} \\".format(self.aer.extdata)
+        elif self.aer.usefile is not None:
+            sc = sc+"\n"+"-AER.UseFile {} \\".format(self.aer.usefile)
+        #
+        #   Surface :
+        #   --------------------------------------
+
+        sc = sc+"\n"+"-SURF.Log ${{dirLOG}}/{} \\".format(self.log.surface)
+        sc = sc+"\n"+"-SURF.File {} \\".format(self.surface.file)
+        sc = sc+"\n"+"-SURF.Type {} \\".format(self.surface.type)
+        sc = sc+"\n"+"-SURF.Alb {} \\".format(self.surface.alb)
+
+        if self.surface.ind is not None:
+            sc = sc+"\n"+"-SURF.Ind {} \\".format(self.surface.ind)
+
+        if self.surface.wind is not None:
+            sc = sc+"\n"+"-SURF.Glitter.Wind {} \\".format(self.surface.wind)
+
+        if self.surface.roujeank0 is not None:
+            sc = sc+"\n"+"-SURF.Roujean.K0 {} \\".format(self.surface.roujeank0)
+
+        if self.surface.roujeank1 is not None:
+            sc = sc+"\n"+"-SURF.Roujean.K1 {} \\".format(self.surface.roujeank1)
+
+        if self.surface.roujeank2 is not None:
+            sc = sc+"\n"+"-SURF.Roujean.K2 {} \\".format(self.surface.roujeank2)
+
+        if self.surface.alpha is not None:
+            sc = sc+"\n"+"-SURF.Nadal.Alpha {} \\".format(self.surface.alpha)
+
+        if self.surface.beta is not None:
+            sc = sc+"\n"+"-SURF.Nadal.Beta {} \\".format(self.surface.beta)
+
+        if not os.path.exists(self.resroot):
+            os.makedirs(self.resroot)
+
+        # We generate the script
+        with open(self.resroot+"/script.kzh", 'w') as file:
+            file.write(sc[:-2])
+
+        # Run script with ksh
+        os.system("ksh "+self.resroot+"/script.kzh")
+
+        # read OUTPUTS
+        #self.outputs = OUTPUTS(self.resroot, self.results)
