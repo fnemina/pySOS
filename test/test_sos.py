@@ -95,7 +95,6 @@ class TestOSOAAClasses(unittest.TestCase):
         self.assertEqual(surface.alpha, 5)
         self.assertEqual(surface.beta, 6)
 
-
     def testANG(self):
         ang = pySOS.ANG()
 
