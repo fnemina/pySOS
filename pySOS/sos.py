@@ -4,6 +4,7 @@ import os
 import random
 import string
 from io import open
+from .outputs import OUTPUTS
 
 
 class LOG(object):
@@ -888,4 +889,4 @@ class SOS(object):
         os.system("ksh "+self.resroot+"/script.kzh")
 
         # read OUTPUTS
-        #self.outputs = OUTPUTS(self.resroot, self.results)
+        self.outputs = OUTPUTS(self.resroot, self.results)
