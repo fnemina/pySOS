@@ -1,11 +1,9 @@
 # pySOS
-`pySOS` is a python interface for the Successive Orders of Scattering (SOS) radiative transfer code. The OSOAA is a radiative transfer code developed by CNES
+`pySOS` is a python interface for the Successive Orders of Scattering (SOS) radiative transfer code. The SOS is a radiative transfer code developed by CNES
 
 The `pySOS` interface aims to incorporate the creation of run scripts and parsing of output results for the SOS model. It also incorporates helpers to perform common tasks like calculating the radiance for a certain band instead of a wavelength or running the model for multiple wavelengths. 
 
 This code was inspired by [py6S](https://github.com/robintw/Py6S) by Robin Wilson.
-
-You can find the full `pyOSOAA` manual [here](https://pyosoaa.readthedocs.io/en/latest/).
 
 ## Installation
 
