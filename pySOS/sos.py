@@ -637,6 +637,11 @@ class SOS(object):
         else:
             self.resroot = resroot
 
+        self.ang = ANG()
+        self.surface = SURFACE()
+        self.ap = AP()
+        self.aer = AER()
+
     def setConstantView(self, phi):
         """ Set constant view mode for a relative azimuth angles
             phi         Relative azimuth (degrees)
