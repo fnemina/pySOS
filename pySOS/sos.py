@@ -6,6 +6,33 @@ import string
 from io import open
 
 
+class LOG(object):
+    """ Log files for the simulation.
+    """
+    ang = "log_ang.txt"
+    profile = "log_profile.txt"
+    aer = "log_aer.txt"
+    aermie = "log_aermie.txt"
+    surface = "log_surface.txt"
+    sos = "log_sos.txt"
+    config = "config_sos.txt"
+
+
+class RESULTS(object):
+    """ Result files for the simulation.
+        """
+    profileatm = None
+    aer = None
+    angrad = None
+    angaer = None
+    bin = None
+    trans = None
+    advup = "resfile_advup.txt"
+    advdown = "resfile_advdown.txt"
+    advupuser = "resfile_advup_user.txt"
+    advdownuser = "resfile_advdown_user.txt"
+
+
 class ANG(object):
     """ Angle definitions class."""
 
@@ -215,6 +242,304 @@ class SURFACE(object):
         self.alpha = alpha
         self.beta = beta
 
+
+class AEROSOLMODELS(object):
+    """ Aerosol models for the AER class."""
+    class SF(object):
+        """ Shettle and Fenn atmosphere model class."""
+        # Shettle and Fenn models
+        Tropospheric = 1
+        Urban = 2
+        Maritime = 3
+        Coastal = 4
+
+        def __init__(self, sfmodel, rh):
+            """ Init method for the Shettle-Fenn model.
+                model       Type of Shettle & Fenn model.
+                                1 : Tropospheric S&F model.
+                                2 : Urban S&F model.
+                                3 : Maritime S&F model.
+                                4 : Coastal S&F model.
+                rh          Relative humidity (%) for Shettle & Fenn model.
+                """
+            self.model = sfmodel
+            self.rh = rh
+
+    class MM(object):
+        """ Mono-modal size distribution"""
+
+        def __init__(self, sdtype):
+            """ Init method for the mono-modal size distribution
+                sdtype      Type of mono-modal size distribution
+                                1 : Log Normal size distribution
+                                2 : Junge's law
+                lnd         Log normal size distribution
+                jd          Junge's law size distribution
+                mrwa        Real part of the aerosol refractive index for the
+                            wavelength of radiation calculation
+                miwa        Imaginary part of the aerosol refractive index for
+                            the  wavelength of radiation calculation
+                sdradius    Modal radius (um) of the Log-Noprmal size
+                            distribution
+                sdvar       Standard deviation of the Log-Normal size
+                            distribution
+                slope       Slope of the Junge's law.
+                            Warning: 3 is a singular value.
+                rmin        Minimal radius of Junge's law (um)
+                rmax        Maximal radius of Junge's law (um)
+                mrwaref     Real part of the aerosol refractive index for the
+                            reference wavelength of aerosol properties
+                            calculation.
+                miwaref     Imaginary part of the aerosol refractive index for
+                            the reference wavelength of aerosol properties
+                            calculation.
+                """
+
+            self.sdtype = sdtype
+            self.mrwa = None
+            self.miwa = None
+            self.mrwaref = None
+            self.miwaref = None
+            if sdtype is 1:
+                self.sdradius = None
+                self.sdvar = None
+            elif sdtype is 2:
+                self.slope = None
+                self.rmin = None
+                self.rmax = None
+
+    class WMO(object):
+        """ WMO aerosol models."""
+
+        def __init__(self, wmotype, dl=None, ws=None, oc=None, so=None):
+            """ Init method for the WMO aerosol model
+                wmotype     Type of WMO model
+                                1 : Continental WMO model
+                                2 : Maritime WMO model
+                                3 : Urban WMO model
+                                4 : WMO model by usef definition
+                dl          Volume concentration (between 0 and 1) for
+                            "Dust like" components
+                ws          Volume concentration (between 0 and 1) for
+                            "Water soluble" components
+                oc          Volume concentration (between 0 and 1) for
+                            "Oceanic" components
+                so          Volume concentration (between 0 and 1) for
+                            "Soot" components
+                """
+
+            self.model = wmotype
+
+            if wmotype is 4:
+                self.dl = dl
+                self.ws = ws
+                self.oc = oc
+                self.so = so
+
+    class LNB(object):
+        """ Log-normal bi-modal aerosol model"""
+
+        def __init__(self, vcdef):
+            """ Log-normal bi-modal aerosol model init functions
+                vcdef       Choide of the mixture description type
+                                1 : Use of predefined volume concentrations.
+                                2 : Use of the ratio of aerosol optical
+                                    thickness (coarse mode ATO / total AOT)
+                coarsevc    User volume concentration of the LND coarse mode
+                finevc      User volume concentration of the LND fine mode
+                raot        User value of the ration AOT_coarse/AOT_total for
+                            the aerosol reference wavelength
+
+                cmrwa       Real part of the aerosol refractive index for the
+                            wavelength of radiation calculation for the coarse
+                            mode
+                cmiwa       Imaginary part of the aerosol refractive index for
+                            the  wavelength of radiation calculationfor the
+                            coarse mode
+                csdradius   Modal radius (um) of the Log-Noprmal size
+                            distribution for the coarse mode
+                csdvar      Standard deviation of the Log-Normal size
+                            distribution for the coarse mode
+                cmrwaref    Real part of the aerosol refractive index for the
+                            reference wavelength of aerosol properties
+                            calculation for the coarse mode
+                cmiwaref    Imaginary part of the aerosol refractive index for
+                            the reference wavelength of aerosol properties
+                            calculation for the coarse mode
+
+                fmrwa       Real part of the aerosol refractive index for the
+                            wavelength of radiation calculation for the fine
+                            mode
+                fmiwa       Imaginary part of the aerosol refractive index for
+                            the  wavelength of radiation calculationfor the
+                            fine mode
+                fsdradius   Modal radius (um) of the Log-Noprmal size
+                            distribution for the fine mode
+                fsdvar      Standard deviation of the Log-Normal size
+                            distribution for the fine mode
+                fmrwaref    Real part of the aerosol refractive index for the
+                            reference wavelength of aerosol properties
+                            calculation for the fine mode
+                fmiwaref    Imaginary part of the aerosol refractive index for
+                            the reference wavelength of aerosol properties
+                            calculation for the fine mode
+                """
+
+            self.vcdef = vcdef
+            if vcdef is 1:
+                self.coarsevc = None
+                self.finevc = None
+            elif vcdef is 2:
+                self.raot = None
+
+            self.cmrwa = None
+            self.cmiwa = None
+            self.cmrwaref = None
+            self.cmiwaref = None
+            self.csdradius = None
+            self.csdvar = None
+
+            self.fmrwa = None
+            self.fmiwa = None
+            self.fmrwaref = None
+            self.fmiwaref = None
+            self.fsdradius = None
+            self.fsdvar = None
+
+
+class AER(object):
+    """ This class contains everything related to the aerosol components
+        of the atmosphere."""
+
+    def __init__(self, waref=0.550, aotref=0.1, tronca=None, model=2):
+        """ Init method for the aerosol componentes class
+            waref       Wavelength (microns) for reference aerosol optical
+                        thickness.
+            aotref      Aerosol optical thickness for the reference wavelength.
+                        --> real value, without applied truncation.
+            tronca      Option for no aerosol phase function troncation
+                        (0 to not apply a troncation). Default is 1.
+            model       Type of aerosol model
+                            0 : Mono-modal
+                            1 : WMO multi-modal
+                            2 : Shettle & Fenn bi-modal
+                            3 : Log-Normal bi-modal
+                            4 : Phase function from an external source
+            """
+
+        self.waref = waref
+        self.aotref = aotref
+        self.tronca = tronca
+        self.model = model
+        self.sf = AEROSOLMODELS.SF(sfmodel=3, rh=98)
+        self.usefile = None
+
+    def SetModel(self, model=2,
+                 sdtype=1,
+                 sfmodel=3, rh=98,
+                 wmotype=1, dl=None, ws=None, oc=None, so=None,
+                 vcdef=2,
+                 extdata=""):
+        """ This methods sets the model for the AER class.
+
+            model       Type of aerosol model
+                            0 : Mono-modal
+                            1 : WMO multi-modal
+                            2 : Shettle & Fenn bi-modal
+                            3 : Log-Normal bi-modal
+                            4 : Phase function from an external source
+
+            Mono-modal distribution parameters
+            ----------------------------------
+            mm          Mono-modal model atribute
+            sdtype      Type of mono-modal size distribution
+                            1 : Log Normal size distribution
+                            2 : Junge's law
+
+            WMO model parameters
+            -------------------
+            wmo         WMO model atribute
+            wmotype     Type of WMO model
+                            1 : Continental WMO model
+                            2 : Maritime WMO model
+                            3 : Urban WMO model
+                            4 : WMO model by usef definition
+            dl          Volume concentration (between 0 and 1) for
+                        "Dust like" components
+            ws          Volume concentration (between 0 and 1) for
+                        "Water soluble" components
+            oc          Volume concentration (between 0 and 1) for
+                        "Oceanic" components
+            so          Volume concentration (between 0 and 1) for
+                        "Soot" components
+
+            Shettle and Fenn model parameters
+            ---------------------------------
+            sf          Shettle and Fenn model atribute
+            sfmodel       Type of Shettle & Fenn model.
+                            1 : Tropospheric S&F model.
+                            2 : Urban S&F model.
+                            3 : Maritime S&F model.
+                            4 : Coastal S&F model.
+            rh          Relative humidity (%) for Shettle & Fenn model.
+
+            Log-Normal bi-modal model parameters
+            ------------------------------------
+            lnd         Log-Normal bi-modal model atribute
+            vcdef       Choide of the mixture description type
+                            1 : Use of predefined volume concentrations.
+                            2 : Use of the ratio of aerosol optical
+                                thickness (coarse mode ATO / total AOT)
+
+            External phase function
+            -----------------------
+            extdata     Filename (complete path) of user's external phase
+                        function data and radiative parameters (extinction and
+                        scattering coefficients).
+                        The reference aerosol wavelength and the radiance
+                        simulation wavelength must be equal
+        """
+        self.model = model
+        if model is 0:
+            self.mm = AEROSOLMODELS.MM(sdtype)
+            self.wmo = None
+            self.sf = None
+            self.lnd = None
+            self.external = None
+        elif model is 1:
+            self.mm = None
+            self.wmo = AEROSOLMODELS.WMO(wmotype, dl, ws, oc, so)
+            self.sf = None
+            self.lnd = None
+            self.external = None
+        elif model is 2:
+            self.mm = None
+            self.wmo = None
+            self.sf = AEROSOLMODELS.SF(sfmodel, rh)
+            self.lnd = None
+            self.external = None
+        elif model is 3:
+            self.mm = None
+            self.wmo = None
+            self.sf = None
+            self.lnb = AEROSOLMODELS.LNB(vcdef)
+            self.external = None
+        elif model is 4:
+            self.mm = None
+            self.sf = None
+            self.wmo = None
+            self.lnd = None
+            self.extdata = extdata
+
+    def UserFile(self, usefile):
+        """Pre-calculated aerosol profile file (complete path).
+           The user file may contain aerosol radiative parameters for
+            a phase function truncature (user has to check the correct
+            agreement with the value of AER.Tronca parameter).
+        """
+        self.usefile = usefile
+
+
 class AP(object):
     """ Atmospheric profile parameters object."""
 
@@ -245,7 +570,6 @@ class AP(object):
         self.zmin = None
         self.zmax = None
 
-
     def setMixAltitude(self, zmin, zmax):
         """ Profile for a mixture of molecules and aerosols
             between altitudes Zmin and Zmax (in km)"""
@@ -267,6 +591,7 @@ class AP(object):
         self.zmin = None
         self.zmax = None
         self.usefile = None
+
 
 class SOS(object):
     """ This class creates the SOS object which configures and runs the
