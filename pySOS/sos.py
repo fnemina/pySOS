@@ -647,10 +647,7 @@ class SOS(object):
         self.mdf = mdf
 
         if resroot is None:
-            rnd = ''.join(random.choice(string.ascii_uppercase
-                                        + string.ascii_lowercase
-                                        + string.digits) for _ in range(8))
-            self.resroot = self.root+"/results/"+rnd
+            self.resroot = self.root+"/results/"
         else:
             self.resroot = resroot
 
@@ -683,6 +680,11 @@ class SOS(object):
 
         if root is not None:
             self.root = root
+
+        rnd = ''.join(random.choice(string.ascii_uppercase
+                                    + string.ascii_lowercase
+                                    + string.digits) for _ in range(8))
+        self.resroot = self.root+"/results/"+rnd
 
         ## Previous config
         sc = "export SOS_RACINE=$RACINE"
