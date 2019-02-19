@@ -31,7 +31,7 @@ the following output should appear at the end of the screen
 ```
 SOS wrapper script by Francisco Nemiña
 Inspired by Py6S wrapper by Robin Wilson
-Using SOS located at /home/fnemina/Documents/SABIA-Mar/RT/SOS6.2
+Using SOS located at /home/.../RT/SOS6.2
 Running SOS using a set of test parameters
 The results are:
 Expected result: 0.34613
