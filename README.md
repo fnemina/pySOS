@@ -34,7 +34,7 @@ Inspired by Py6S wrapper by Robin Wilson
 Using SOS located at /home/.../RT/SOS6.2
 Running SOS using a set of test parameters
 The results are:
-Expected result: 0.34613
+Expected result: 0.346131
 Actual result: 0.346131
 #### Results agree PyOSOAA is working correctly
 
